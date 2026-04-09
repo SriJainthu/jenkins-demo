@@ -1,245 +1,385 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Smart Notice Board</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Smart Notice Board | Premium Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #f43f5e;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
 
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  min-height: 100vh;
-  color: white;
-}
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0, transparent 50%), 
+                              radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.1) 0, transparent 50%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-/* HEADER */
-header {
-  text-align: center;
-  padding: 40px 20px;
-  animation: fadeDown 1s ease;
-}
+        /* NAVIGATION BAR */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
 
-header h1 {
-  font-size: 2.8rem;
-  letter-spacing: 1px;
-}
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #6366f1, #f43f5e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-header p {
-  opacity: 0.9;
-}
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
 
-/* CONTAINER */
-.container {
-  max-width: 750px;
-  margin: auto;
-  padding: 20px;
-}
+        .nav-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
 
-/* GLASS CARD */
-.glass {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(18px);
-  border-radius: 18px;
-  padding: 25px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  margin-bottom: 25px;
-  animation: fadeUp 0.8s ease;
-}
+        .nav-links a:hover, .nav-links a.active {
+            color: white;
+        }
 
-/* INPUTS */
-input, select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  font-size: 1rem;
-  transition: 0.3s;
-}
+        /* LAYOUT MAIN */
+        .wrapper {
+            display: flex;
+            max-width: 1200px;
+            margin: 120px auto 0;
+            padding: 0 20px;
+            gap: 40px;
+        }
 
-input::placeholder {
-  color: #ddd;
-}
+        /* SIDEBAR (FILTERING) */
+        .sidebar {
+            width: 250px;
+            position: sticky;
+            top: 120px;
+            height: fit-content;
+        }
 
-input:focus, select:focus {
-  background: rgba(255,255,255,0.3);
-  transform: scale(1.02);
-}
+        .filter-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 25px;
+            border-radius: 20px;
+        }
 
-/* BUTTON */
-.add-btn {
-  width: 100%;
-  margin-top: 15px;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(to right, #ff7e5f, #feb47b);
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            transition: 0.3s;
+            font-weight: 600;
+        }
 
-.add-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 20px rgba(255, 126, 95, 0.6);
-}
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: white;
+        }
 
-/* NOTICE */
-.notice {
-  position: relative;
-  margin-top: 15px;
-  padding: 18px;
-  border-radius: 15px;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-  animation: fadeInScale 0.4s ease;
-  transition: all 0.3s ease;
-}
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+        }
 
-.notice:hover {
-  transform: translateY(-6px) scale(1.01);
-}
+        .post-box {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
 
-/* TEXT */
-.notice h3 {
-  margin-bottom: 6px;
-}
+        input, select, textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
 
-.notice p {
-  color: #eee;
-  font-size: 0.95rem;
-}
+        input:focus { border-color: var(--primary); }
 
-/* TAG */
-.tag {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: bold;
-}
+        .btn-post {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
 
-.exam { background: #ff4b5c; }
-.event { background: #00c9a7; }
-.general { background: #845ec2; }
+        .btn-post:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
 
-/* DELETE BUTTON */
-.delete-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 0, 0, 0.7);
-  border: none;
-  border-radius: 50%;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: 0.3s;
-}
+        /* NOTICES */
+        .notice-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
 
-.delete-btn:hover {
-  transform: scale(1.2);
-  background: red;
-}
+        .notice-card:hover {
+            transform: scale(1.02);
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+        }
 
-/* ANIMATIONS */
-@keyframes fadeUp {
-  from {opacity: 0; transform: translateY(30px);}
-  to {opacity: 1; transform: translateY(0);}
-}
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-@keyframes fadeDown {
-  from {opacity: 0; transform: translateY(-30px);}
-  to {opacity: 1; transform: translateY(0);}
-}
+        .date { font-size: 0.75rem; color: #64748b; }
 
-@keyframes fadeInScale {
-  from {opacity: 0; transform: scale(0.9);}
-  to {opacity: 1; transform: scale(1);}
-}
+        .tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
 
-/* FOOTER */
-footer {
-  text-align: center;
-  padding: 20px;
-  opacity: 0.8;
-}
-</style>
+        .tag.exam { background: #ef4444; color: white; }
+        .tag.event { background: #10b981; color: white; }
+        .tag.general { background: #6366f1; color: white; }
+
+        .delete-ico {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            color: #475569;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .delete-ico:hover { color: #ef4444; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .wrapper { flex-direction: column; margin-top: 100px; }
+            .sidebar { width: 100%; position: static; }
+            nav { padding: 20px; }
+            .nav-links { display: none; }
+        }
+    </style>
 </head>
-
 <body>
 
-<header>
-  <h1>📢 Smart Notice Board</h1>
-  <p>Modern UI | Glassmorphism | CI/CD Enabled</p>
-</header>
+    <nav>
+        <div class="logo"><i class="fas fa-layer-group"></i> SMARTBOARD</div>
+        <div class="nav-links">
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Archives</a>
+            <a href="#">Settings</a>
+            <a href="#">Help</a>
+        </div>
+        <div class="user-profile">
+            <i class="fas fa-circle-user fa-xl"></i>
+        </div>
+    </nav>
 
-<div class="container">
+    <div class="wrapper">
+        <aside class="sidebar">
+            <div class="filter-card">
+                <h4 style="margin-bottom: 20px; font-size: 0.9rem; color: #64748b;">CATEGORIES</h4>
+                <button class="filter-btn active" onclick="filterNotices('all', this)">
+                    <i class="fas fa-border-all"></i> All Notices
+                </button>
+                <button class="filter-btn" onclick="filterNotices('exam', this)">
+                    <i class="fas fa-file-invoice"></i> Exams
+                </button>
+                <button class="filter-btn" onclick="filterNotices('event', this)">
+                    <i class="fas fa-calendar-star"></i> Events
+                </button>
+                <button class="filter-btn" onclick="filterNotices('general', this)">
+                    <i class="fas fa-info-circle"></i> General
+                </button>
+            </div>
+        </aside>
 
-  <!-- FORM -->
-  <div class="glass">
-    <h2>Add Notice</h2>
-    <input type="text" id="title" placeholder="Enter title">
-    <input type="text" id="desc" placeholder="Enter description">
+        <main class="main-content">
+            <div class="post-box">
+                <h2 style="margin-bottom: 20px;">Create a Broadcast</h2>
+                <input type="text" id="title" placeholder="Notice Title">
+                <textarea id="desc" rows="3" placeholder="What's the update?"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <select id="type">
+                        <option value="general">General</option>
+                        <option value="exam">Examination</option>
+                        <option value="event">Campus Event</option>
+                    </select>
+                    <button class="btn-post" onclick="addNotice()">Post Now</button>
+                </div>
+            </div>
 
-    <select id="type">
-      <option value="general">General</option>
-      <option value="exam">Exam</option>
-      <option value="event">Event</option>
-    </select>
+            <div id="noticeContainer"></div>
+        </main>
+    </div>
 
-    <button class="add-btn" onclick="addNotice()">➕ Add Notice</button>
-  </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-  <!-- LIST -->
-  <div id="noticeList"></div>
+    <script>
+        let notices = JSON.parse(localStorage.getItem('notices_v2')) || [];
 
-</div>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+            gsap.from("nav", { y: -100, opacity: 0, duration: 1, ease: "expo.out" });
+            gsap.from(".sidebar", { x: -50, opacity: 0, duration: 1, delay: 0.3 });
+            gsap.from(".post-box", { y: 30, opacity: 0, duration: 1, delay: 0.5 });
+        });
 
-<footer>
-  <p>© 2026 Smart Notice Board | CI/CD Project</p>
-</footer>
+        function addNotice() {
+            const title = document.getElementById("title").value;
+            const desc = document.getElementById("desc").value;
+            const type = document.getElementById("type").value;
 
-<script>
-function addNotice() {
-  const title = document.getElementById("title").value;
-  const desc = document.getElementById("desc").value;
-  const type = document.getElementById("type").value;
+            if (!title || !desc) {
+                gsap.to(".post-box", { x: -10, repeat: 5, yoyo: true, duration: 0.05 });
+                return;
+            }
 
-  if (!title || !desc) {
-    alert("Please fill all fields");
-    return;
-  }
+            const newNotice = {
+                id: Date.now(),
+                title,
+                desc,
+                type,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            };
 
-  const notice = document.createElement("div");
-  notice.className = "notice";
+            notices.unshift(newNotice);
+            localStorage.setItem('notices_v2', JSON.stringify(notices));
+            
+            // UI Update
+            renderAll();
+            
+            // Clear inputs
+            document.getElementById("title").value = "";
+            document.getElementById("desc").value = "";
+        }
 
-  notice.innerHTML = `
-    <button class="delete-btn" onclick="this.parentElement.remove()">✖</button>
-    <h3>${title}</h3>
-    <p>${desc}</p>
-    <span class="tag ${type}">${type.toUpperCase()}</span>
-  `;
+        function renderAll(filter = 'all') {
+            const container = document.getElementById("noticeContainer");
+            container.innerHTML = "";
 
-  document.getElementById("noticeList").prepend(notice);
+            const filtered = filter === 'all' ? notices : notices.filter(n => n.type === filter);
 
-  document.getElementById("title").value = "";
-  document.getElementById("desc").value = "";
-}
-</script>
+            if (filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:50px; color:#475569">No notices found in this category.</div>`;
+                return;
+            }
 
+            filtered.forEach((n, index) => {
+                const card = document.createElement("div");
+                card.className = "notice-card";
+                card.innerHTML = `
+                    <i class="fas fa-trash-alt delete-ico" onclick="deleteNotice(${n.id})"></i>
+                    <div class="meta">
+                        <span class="tag ${n.type}">${n.type}</span>
+                        <span class="date">${n.date}</span>
+                    </div>
+                    <h3>${n.title}</h3>
+                    <p style="margin-top:10px; color:#94a3b8; font-size:0.95rem;">${n.desc}</p>
+                `;
+                container.appendChild(card);
+                
+                // Staggered Animation
+                gsap.from(card, {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.5,
+                    delay: index * 0.1,
+                    ease: "power2.out"
+                });
+            });
+        }
+
+        function deleteNotice(id) {
+            const card = event.target.closest('.notice-card');
+            gsap.to(card, {
+                opacity: 0,
+                x: 50,
+                duration: 0.4,
+                onComplete: () => {
+                    notices = notices.filter(n => n.id !== id);
+                    localStorage.setItem('notices_v2', JSON.stringify(notices));
+                    renderAll();
+                }
+            });
+        }
+
+        function filterNotices(category, btn) {
+            // Update Active Button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Animate transition out then in
+            gsap.to("#noticeContainer", {
+                opacity: 0,
+                y: 10,
+                duration: 0.3,
+                onComplete: () => {
+                    renderAll(category);
+                    gsap.to("#noticeContainer", { opacity: 1, y: 0, duration: 0.3 });
+                }
+            });
+        }
+    </script>
 </body>
 </html>
