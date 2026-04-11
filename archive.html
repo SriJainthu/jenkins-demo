@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Archives | Smart Notice Board</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Archive Specific Tweaks */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px; /* Adds spacing between rows */
+        }
+        
+        th {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #64748b;
+            padding: 15px;
+        }
+
+        tr.row-item {
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        tr.row-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.005);
+        }
+
+        td {
+            padding: 15px;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        td:first-child { border-left: 1px solid var(--glass-border); border-radius: 12px 0 0 12px; }
+        td:last-child { border-right: 1px solid var(--glass-border); border-radius: 0 12px 12px 0; }
+
+        .search-wrapper {
+            position: relative;
+            width: 300px;
+        }
+        #search {
+    padding-left: 45px !important; /* This pushes the text past the icon */
+    margin-bottom: 0; /* Keeps it aligned with the header */
+}
+       .search-wrapper i {
+    position: absolute;
+    left: 18px; /* Adjusted positioning */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #475569;
+    pointer-events: none;
+    transition: 0.3s;
+    z-index: 10; /* Ensures icon stays on top */
+}
+
+        #search:focus + i {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">
+        <i class="fas fa-info-circle"></i>
+        <span id="toastMsg">Search Updated</span>
+    </div>
+
+    <nav>
+    <a href="index.html" class="logo" id="mainLogo">
+        <i class="fas fa-bolt"></i> <span id="logoText">SMARTBOARD</span>
+    </a>
+    <div class="nav-links">
+        <a href="index.html" id="dashLink">Dashboard</a>
+        <a href="archive.html" id="archLink">Archives</a>
+        <span id="settingsLink" style="display:none;"><a href="settings.html">Settings</a></span>
+        
+        <div class="auth-wrapper" style="display: inline-flex; align-items: center; margin-left: 15px;">
+            <i class="fas fa-lock" id="loginBtn" onclick="handleAuthClick()" 
+               style="cursor:pointer; color:#475569; font-size: 1.1rem; transition: all 0.3s ease;"></i>
+        </div>
+    </div>
+</nav>
+
+    <div class="container">
+        <div class="glass-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.8rem;">History Log</h2>
+                    <p style="color: #64748b; font-size: 0.9rem;">View and filter all previous broadcasts.</p>
+                </div>
+                
+                <div class="search-wrapper">
+                    <input type="text" id="search" placeholder="Filter notices..." onkeyup="filterTable()">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+
+            <table id="noticeTable">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th style="text-align: right;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="archiveTable">
+                    </tbody>
+            </table>
+            
+            <div id="emptyState" style="display:none; text-align:center; padding:50px; color:#475569;">
+                <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <p>No matches found for your search.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        const notices = JSON.parse(localStorage.getItem('notices')) || [];
+
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").innerText = message;
+            
+            gsap.to(toast, { y: -20, opacity: 1, duration: 0.5, ease: "expo.out" });
+            gsap.to(toast, { y: 100, opacity: 0, duration: 0.5, delay: 2, ease: "expo.in" });
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById("archiveTable");
+            
+            if(notices.length === 0) {
+                document.getElementById("noticeTable").style.display = "none";
+                document.getElementById("emptyState").style.display = "block";
+                document.getElementById("emptyState").innerHTML = `<p>No history available yet.</p>`;
+                return;
+            }
+
+            tableBody.innerHTML = notices.map((n, i) => `
+                <tr class="row-item" data-id="${n.id}">
+                    <td style="font-size: 0.8rem; color: #94a3b8;">${n.date}</td>
+                    <td><span style="font-weight: 600; color: #f1f5f9;">${n.title}</span></td>
+                    <td><span class="tag ${n.type}">${n.type}</span></td>
+                    <td style="text-align: right;">
+                        <span style="color: #10b981; font-size: 0.75rem; font-weight: 700;">
+                            <i class="fas fa-check-double"></i> ARCHIVED
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Staggered entry animation for table rows
+            gsap.from(".row-item", {
+                opacity: 0,
+                x: -20,
+                duration: 0.5,
+                stagger: 0.05,
+                ease: "power2.out"
+            });
+        }
+
+        // Professional Search Animation
+        const searchInput = document.getElementById("search");
+        
+        searchInput.addEventListener('focus', () => {
+            gsap.to(searchInput, { width: 350, duration: 0.4, ease: "back.out(1.7)" });
+        });
+
+        searchInput.addEventListener('blur', () => {
+            gsap.to(searchInput, { width: 300, duration: 0.4 });
+        });
+
+        function filterTable() {
+            const val = searchInput.value.toLowerCase();
+            const rows = document.querySelectorAll(".row-item");
+            let matchCount = 0;
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                if(text.includes(val)) {
+                    row.style.display = "";
+                    matchCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            document.getElementById("emptyState").style.display = matchCount === 0 ? "block" : "none";
+            document.getElementById("noticeTable").style.display = matchCount === 0 ? "none" : "table";
+        }
+        // --- GLOBAL BRANDING LOGIC ---
+function applyGlobalBranding() {
+    // 1. Look into the browser's memory for the 'boardName'
+    const savedName = localStorage.getItem('boardName');
+    
+    // 2. Find the logo text element
+    const logoSpan = document.getElementById('logoText');
+    
+    // 3. If a name exists, overwrite "SMARTBOARD"
+    if (savedName && logoSpan) {
+        logoSpan.innerText = savedName.toUpperCase();
+    }
+}
+
+// --- EXECUTE ON LOAD ---
+// This ensures that as soon as the page opens, it checks the memory
+window.addEventListener('DOMContentLoaded', applyGlobalBranding);
+        window.onload = () => {
+            renderTable();
+            gsap.from("nav", { y: -60, opacity: 0, duration: 1 });
+            gsap.from(".glass-panel", { scale: 0.95, opacity: 0, duration: 0.8, delay: 0.2 });
+        };
+    </script>
+</body>
+</html>

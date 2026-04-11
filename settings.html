@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings | Smart Notice Board</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body class="settings-page">
+
+    <div id="gatekeeper" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; z-index:9999; display:flex; align-items:center; justify-content:center; color:white; font-family:'Plus Jakarta Sans';">
+        <div style="text-align:center;">
+            <i class="fas fa-user-shield" style="font-size:3rem; color:#6366f1; margin-bottom:20px;"></i>
+            <h2>Checking Authorization...</h2>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content" style="max-width: 350px;">
+            <i class="fas fa-shield-halved" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+            <h2>Admin Login</h2>
+            <p style="color: #94a3b8; margin: 10px 0 20px; font-size: 0.9rem;">Enter credentials to access controls.</p>
+            <input type="password" id="adminPassInput" placeholder="Enter Password" style="text-align: center; letter-spacing: 4px;">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn-primary" style="background: #334155;" onclick="closeLoginModal()">Cancel</button>
+                <button class="btn-primary" onclick="verifyAdmin()">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div id="modalIconContainer">
+                <i id="modalIcon" class="fas fa-exclamation-triangle" style="font-size: 3.5rem; margin-bottom: 20px;"></i>
+            </div>
+            <h2 id="modalTitle">Attention</h2>
+            <p id="modalMsg" style="color: #94a3b8; margin: 15px 0 25px; line-height: 1.5;"></p>
+            <div id="modalActions" style="display: flex; gap: 10px; justify-content: center;"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Configuration Saved!</span>
+    </div>
+
+    <nav>
+        
+        <a href="index.html" class="logo" id="mainLogo">
+            <i class="fas fa-bolt"></i> <span id="logoText">SMARTBOARD</span>
+        </a>
+        <div class="nav-links">
+    <a href="index.html">Dashboard</a>
+    <a href="archive.html">Archives</a>
+    <span id="settingsLink" style="display:none;">
+        <a href="settings.html">Settings</a>
+    </span>
+    <i class="fas fa-lock" id="loginBtn" onclick="handleAuthClick()"></i>
+</div>
+    </nav>
+
+    <div class="container">
+        <div class="glass-panel" id="settingsPanel" style="max-width: 600px; margin: auto;">
+            <h2 style="font-weight: 800; font-size: 1.8rem;">Board Preferences</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 25px;">Customize how your notice board looks and behaves.</p>
+            
+            <div class="settings-group">
+                <label style="color: #94a3b8; font-size: 0.8rem; display: block; margin-bottom: 8px;">Institution Name</label>
+                <input type="text" id="boardName" placeholder="e.g. Computer Science Dept">
+                
+                <label style="color: #94a3b8; font-size: 0.8rem; display: block; margin-bottom: 8px;">Board Status</label>
+                <select id="boardStatus">
+                    <option value="public">Public (Visible to all)</option>
+                    <option value="private">Private (Admin only)</option>
+                </select>
+
+                <button class="btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save" style="margin-right: 8px;"></i> Update Settings
+                </button>
+                
+                <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 30px 0;">
+                
+                <h3 style="color: #f43f5e; margin-bottom: 10px;">Danger Zone</h3>
+                <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px;">Wiping data will clear all entries from your local history. This is permanent.</p>
+                
+                <button onclick="confirmWipe()" style="background: rgba(244, 63, 94, 0.1); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.2); padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.3s;">
+                    <i class="fas fa-trash-alt" style="margin-right: 8px;"></i> Wipe All Notice Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        // --- 1. SECURITY & GATEKEEPER ---
+        // --- 1. SECURITY & GATEKEEPER ---
+function checkGate() {
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    const loginBtn = document.getElementById('loginBtn');
+    const settingsLink = document.getElementById('settingsLink');
+
+    if (!isAdmin) {
+        // Kick out unauthorized users immediately
+        window.location.href = "index.html";
+    } else {
+        // Hide the gatekeeper overlay
+        document.getElementById('gatekeeper').style.display = 'none';
+        
+        // INTEGRITY FIX: Force the icon to be the Unlocked version (Purple Glow)
+        if (loginBtn) {
+            loginBtn.className = "fas fa-unlock";
+            loginBtn.style.color = "#6366f1";
+            loginBtn.style.textShadow = "0 0 10px rgba(99, 102, 241, 0.3)";
+        }
+        
+        // Ensure Settings link is visible in the nav
+        if (settingsLink) {
+            settingsLink.style.display = "inline";
+        }
+    }
+}
+
+// Function to handle the lock click (Logout)
+function handleAuthClick() {
+    sessionStorage.removeItem('isAdmin');
+    // Since we just logged out, we kick the user back to the dashboard
+    window.location.href = "index.html"; 
+}
+
+// --- 2. GLOBAL BRANDING ---
+function applyGlobalBranding() {
+    const savedName = localStorage.getItem('boardName');
+    const logoSpan = document.getElementById('logoText');
+    if (savedName && logoSpan) {
+        logoSpan.innerText = savedName.toUpperCase();
+    }
+}
+
+// --- 3. MODAL & TOAST ENGINE ---
+function showModal(config) {
+    const overlay = document.getElementById("modalOverlay");
+    const icon = document.getElementById("modalIcon");
+    const actions = document.getElementById("modalActions");
+    
+    document.getElementById("modalTitle").innerText = config.title;
+    document.getElementById("modalMsg").innerText = config.message;
+    icon.className = config.icon;
+    icon.style.color = config.color || "#6366f1";
+    
+    actions.innerHTML = config.buttons.map(btn => `
+        <button class="btn-primary" 
+                style="background: ${btn.bg || 'var(--primary)'}; min-width: 100px;" 
+                onclick="${btn.action}">
+            ${btn.text}
+        </button>
+    `).join('');
+
+    overlay.style.display = "flex";
+    gsap.to(overlay, { opacity: 1, duration: 0.3 });
+    gsap.from(".modal-content", { scale: 0.8, y: 20, duration: 0.4, ease: "back.out(1.7)" });
+}
+
+function closeModal() {
+    gsap.to("#modalOverlay", { opacity: 0, duration: 0.2, onComplete: () => {
+        document.getElementById("modalOverlay").style.display = "none";
+    }});
+}
+
+function showToast(msg) {
+    const toast = document.getElementById("toast");
+    document.getElementById("toastMsg").innerText = msg;
+    const tl = gsap.timeline();
+    tl.to(toast, { y: -20, opacity: 1, duration: 0.5, ease: "expo.out" })
+      .to(toast, { y: 100, opacity: 0, duration: 0.5, delay: 2.5, ease: "expo.in" });
+}
+
+// --- 4. SETTINGS LOGIC ---
+function saveSettings() {
+    const nameValue = document.getElementById("boardName").value;
+    if(!nameValue.trim()) {
+        gsap.to("#settingsPanel", { x: 10, repeat: 5, yoyo: true, duration: 0.05 });
+        showToast("Please enter an institution name");
+        return;
+    }
+    localStorage.setItem('boardName', nameValue);
+    applyGlobalBranding();
+    gsap.to(".btn-primary", { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1 });
+    showToast("Configuration Saved!");
+}
+
+function confirmWipe() {
+    showModal({
+        title: "Are you sure?",
+        message: "This will delete every notice from your board forever. You cannot undo this action.",
+        icon: "fas fa-radiation",
+        color: "#f43f5e",
+        buttons: [
+            { text: "Cancel", action: "closeModal()", bg: "#334155" },
+            { text: "Yes, Wipe It", action: "wipeData()", bg: "#ef4444" }
+        ]
+    });
+}
+
+function wipeData() {
+    localStorage.removeItem('notices');
+    closeModal();
+    showToast("Database reset successfully.");
+    setTimeout(() => { window.location.href = "index.html"; }, 1200);
+}
+
+// --- 5. INITIALIZATION ---
+window.onload = () => {
+    checkGate(); // Now includes the icon fix!
+    applyGlobalBranding();
+    const savedName = localStorage.getItem('boardName');
+    if(savedName) document.getElementById("boardName").value = savedName;
+    
+    gsap.from(".glass-panel", { opacity: 0, y: 20, duration: 0.8 });
+    
+    // Smooth input scaling
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', () => gsap.to(input, { scale: 1.02, duration: 0.3 }));
+        input.addEventListener('blur', () => gsap.to(input, { scale: 1, duration: 0.3 }));
+    });
+};
+    </script>
+</body>
+</html>
